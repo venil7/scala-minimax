@@ -10,7 +10,7 @@ class Board() {
 
   def move(index: Int, field: Field): Board = {
     val board = new Board()
-    board._fields.update(index, field)
+    board._fields(index) = field
     board
   }
 
@@ -22,17 +22,39 @@ class Board() {
       }
     }
 
-    val possibleMoves = this.possibleMoves
-    if (possibleMoves.isEmpty) {
+    val moves = possibleMoves;
+    if (moves.isEmpty) {
       return Draw
     }
 
-    return new State(possibleMoves = possibleMoves)
+    return new State(possibleMoves = moves)
   }
 
   def possibleMoves: Seq[Int] = {
     for (index <- 0 until LENGTH; if (_fields(index) != Empty))
       yield index
+  }
+
+  def minimax(board: Board = this, field: Field, depth: Int = 1):Eval = {
+    state match {
+      case CpuWins => Eval(score = 10 - depth)
+      case HumanWins => Eval(score = depth - 10)
+      case Draw => Eval()
+      case State(false, possibleMoves, _) => {
+        val evaluatedMoves = for(move <- possibleMoves) yield {
+          val boardClone = board.move(move, field)
+          val score = minimax(boardClone, field.reverse, depth + 1).score
+          Eval(move, score)
+        }
+
+        val sortedMoves = evaluatedMoves.sorted
+        field match {
+          case X => sortedMoves.head
+          case O => sortedMoves.last
+          case _ => throw new Exception("Only set X|O")
+        }
+      }
+    }
   }
 
   override def toString(): String = {

@@ -1,9 +1,9 @@
 package com.darkruby.minimax
 
-class State(
-  val gameOver: Boolean = false,
-  val possibleMoves: Seq[Int] = Nil,
-  val winner: Player = Nobody) {
+case class State(
+  gameOver: Boolean = false,
+  possibleMoves: Seq[Int] = Nil,
+  winner: Player = Nobody) {
 }
 
 object CpuWins extends State(true, winner = CPU)
