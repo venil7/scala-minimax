@@ -1,24 +1,25 @@
 package com.darkruby.minimax
 
-class Board() {
+class Board(private val fields:Array[Field] = Array.fill(9)(Empty)) {
   private val LENGTH = 9
-  val COMBINATIONS = Array(
+  private val COMBINATIONS = Array(
     (0, 1, 2), (3, 4, 5), (6, 7, 8),
     (0, 3, 6), (1, 4, 7), (2, 5, 8),
     (0, 4, 8), (2, 4, 6))
-  val _fields: Array[Field] = Array.fill(9)(Empty)
 
   def move(index: Int, field: Field): Board = {
-    val board = new Board()
-    board._fields(index) = field
-    board
+      val _fields = fields.clone()
+      _fields(index) = field
+      new Board(_fields)
   }
 
   def state(): State = {
     for (indices <- COMBINATIONS) {
-      (_fields(indices._1), _fields(indices._2), _fields(indices._3)) match {
+      val combination = (fields(indices._1), fields(indices._2), fields(indices._3))
+      combination match {
         case (X, X, X) => return HumanWins //good luck :)
         case (O, O, O) => return CpuWins
+        case _ => { }
       }
     }
 
@@ -30,13 +31,14 @@ class Board() {
     return new State(possibleMoves = moves)
   }
 
-  def possibleMoves: Seq[Int] = {
-    for (index <- 0 until LENGTH; if (_fields(index) != Empty))
-      yield index
+  def possibleMoves: Array[Int] = {
+    (for (index <- 0 until LENGTH; if (fields(index) == Empty))
+      yield index).toArray
   }
 
   def minimax(board: Board = this, field: Field, depth: Int = 1):Eval = {
-    state match {
+    val boardState = board.state()
+    boardState match {
       case CpuWins => Eval(score = 10 - depth)
       case HumanWins => Eval(score = depth - 10)
       case Draw => Eval()
@@ -57,8 +59,13 @@ class Board() {
     }
   }
 
+  def cpu(): Board = {
+    val eval = minimax(this, O)
+    move(eval.position, O)
+  }
+
   override def toString(): String = {
-    _fields
+    fields
       .grouped(3)
       .map(_.mkString)
       .mkString("\n", "\n", "\n");
